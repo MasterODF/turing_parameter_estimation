@@ -1,0 +1,20 @@
+# Ignore everything...
+*
+
+# ...except folders (so git looks inside them)...
+!*/
+
+# ...and the files of the repository
+!*.py
+!README.md
+!.gitignore
+!requirements.txt
+!CITATION.cff
+!LICENSE
+
+# Generated folders are never versioned, even if they contain .py files
+__pycache__/
+simulaciones_*/
+redes/
+diagnosticos/
+.venv/

@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper below."
+title: "Turing parameter estimation: amortized Bayesian inference of Turing pattern parameters"
+type: software
+license: MIT
+repository-code: "https://github.com/MasterODF/turing_parameter_estimation"
+authors:
+  - family-names: "Delgado"
+    given-names: "Oscar"
+    affiliation: "AFFILIATION"
+  # Add one entry per author, in the same order as in the paper
+preferred-citation:
+  type: article
+  title: "PAPER TITLE"
+  authors:
+    - family-names: "Delgado"
+      given-names: "Oscar"
+  journal: "JOURNAL"
+  year: 2026
+  # doi: "10.xxxx/xxxxx"  (add it when the paper is published)
