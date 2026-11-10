@@ -1,26 +1,6 @@
 """
-Question 3 of the paper: are the box partition and the homogeneous a and Dv inside each box recovered from the whole
+Are the box partition and the homogeneous a and Dv inside each box recovered from the whole
 pattern, without knowing how many boxes there are?
-
-Amortized Bayesian inference (BayesFlow, flow matching) of the a and Dv maps at the resolution of the smallest box
-(a k x k grid of cells of side TAM_MINIMO) from the final u of the simulations written by simular_celdas.py. The
-partition is then reconstructed bottom-up: four sibling blocks are merged when, for every pair, the credible
-interval of the difference of their (a, Dv) contains 0. The credible level is chosen on the validation set and
-only reported on the test set.
-
-Training uses data augmentation (rotations by 90 degrees, reflections and periodic shifts by multiples of
-TAM_MAXIMO, which preserve the quadtree prior) and keeps the epoch with the lowest validation loss.
-
-Writes:
-    <redes>/<nombre>.keras                          trained network (loaded instead of retrained if it exists)
-    <diagnosticos>/<nombre>_*.png                   loss, recovery by box size, calibration ECDF (all cells and by
-                                                    box size), z-score vs contraction, example partitions
-    <diagnosticos>/<nombre>_calibracion.txt         RMSE, median absolute error, posterior SD, coverage by box size
-    <diagnosticos>/<nombre>_particiones.txt         partition reconstruction for every credible level
-Also prints the test cells with the largest |z-score|.
-
-The defaults are the settings used in the paper:
-    python inferir_celdas.py
 """
 
 import os
