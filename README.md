@@ -99,34 +99,19 @@ python inferir_celdas.py --num-entrenar 1000 --nombre celdas_1000
 | `diagnosticos/celdas_particiones.txt` | Exact partitions and Rand index for every credible level |
 
 If `redes/<name>.keras` already exists, the inference scripts load it instead of retraining; delete it (or use another
-`--nombre`) to retrain.
-
-### Running on a SLURM cluster
-
-Request as many cores as you want parallel processes for the simulations (the scripts use the cores allocated to the
-job) and one GPU per network. The window sizes of question 2 can run as separate jobs with `--ventanas 64`,
-`--ventanas 32`, etc. If the job launcher takes the options of the program as its own, put `--` before the program
-(`launcher <launcher options> -- python inferir_ventanas.py --ventanas 16`).
-
-Approximate times on our cluster (AMD EPYC nodes, RTX 3090 / L40S GPUs):
-
-| Step | Resources | Time |
-|---|---|---|
-| `simular_constante.py` | 48 cores | ~1.5 h |
-| `simular_celdas.py` | 48 cores | ~2.5 h |
-| `inferir_completo.py` | 1 GPU | ~2 h |
-| `inferir_ventanas.py`, one window size | 1 GPU | ~2–3.5 h (longest for 2 × 2) |
-| `inferir_celdas.py` | 1 GPU | ~2.5 h |
-
-If a job hits its time limit, the checkpoint of the unfinished network stays in `redes/` and would be loaded as if it
-were finished by a later run with the same name. Give jobs enough time, or delete the checkpoint before relaunching.
+`--nombre`) to retrain. If a training run is interrupted, the checkpoint of the unfinished network stays in `redes/`
+and would be loaded as if it were finished; delete it before running again.
 
 ## Known limitations
 
-- **Simulations without a formed pattern.** Very close to the Turing threshold and with small `a`, the instability
-  grows so slowly that the field is still almost homogeneous at `T = 1000`. With little of the pattern visible
-  (small windows), the networks can return confident but wrong estimates for those cases; the coverage and the median
-  error are more robust summaries than the RMSE.
+- **Simulations without a formed pattern.** Very close to the Turing threshold, the instability grows so slowly that
+  the field is still almost homogeneous at `T = 1000`. With little of the pattern visible (small windows), the
+  networks return confident but wrong estimates for those cases, which they map to another point near the threshold.
+  The coverage and the median error are more robust summaries than the RMSE.
+- **Windows comparable to the wavelength.** For small `a` the pattern wavelength is longest (about 20–30 pixels), so
+  a 16 × 16 window contains little more than half a period. In that regime the 16 × 16 network can underestimate
+  `Dv` with overconfident posteriors even when the pattern is fully formed; larger windows are unaffected and smaller
+  ones return wider, better calibrated posteriors.
 - **Calibration in question 3.** The posterior width varies less with the box size than the actual error: slightly
   underconfident in large boxes and overconfident for `Dv` in the smallest boxes. The largest errors concentrate near
   the edges of the Turing region (small `a` close to the threshold, and `a` close to 1, where the homogeneous state
