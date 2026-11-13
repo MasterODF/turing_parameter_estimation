@@ -11,6 +11,7 @@
 !requirements.txt
 !CITATION.cff
 !LICENSE
+!main.tex
 
 # Generated folders are never versioned, even if they contain .py files
 __pycache__/
