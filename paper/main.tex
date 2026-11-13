@@ -1,6 +1,8 @@
 \documentclass[12pt]{article}
-
-\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{hyperref}
 \usepackage{lmodern}
 \usepackage[T1]{fontenc}
 
@@ -13,7 +15,14 @@
 \maketitle
 
 \begin{abstract}
-Write a concise summary of the paper here.
+    We propose a workflow to estimate the parameters of reaction-diffusion models from the 
+    Turing patterns they produce, using amortized Bayesian inference. Building on the BayesFlow~2
+    package\cite{bayesflow2}, we jointly train a summary network and an inference network on
+    simulated patterns, so that the posterior distribution of the parameters given a pattern can
+    be obtained for any new observation without retraining. We apply the workflow to a two-morphogen
+    model, considering both spatially homogeneous and inhomogeneous parameters.
+    Tests yield successful results to infer parameters in all cases explored, with some limitations
+    inherent to pattern formation.
 \end{abstract}
 
 \section{Introduction}
@@ -23,9 +32,27 @@ Introduce the topic, explain its significance, and state the research question.
 Describe the methods, materials, and procedures used in the study.
 
 \section{Results}
-Present the findings of the study.
+Here we present the findings of the study.
+
+    \subsection{Homogeneous parameter estimation}
+        The first case of interest consists on considering the same value for $a, D_v$ for every point in the grid.
+
+        We study the cases where we have access to the full patern (full-window, $128 \times 128 \text{ px}^2$) and where our information
+        of the final state is limited to square windows of smaller sizes ($64 \times 64, 32 \times 32, \ldots, 2 \times 2$). Due to the 
+        periodic nature of patterns with a well-defined wavelength, we expect parameters to be obtainable
+        only if said wavelength fits inside the observation window.
+
+        \subsubsection{Full-window and stability condition recovery}
+
+
+
 
 \section{Conclusion}
 Summarize the main findings and their implications.
 
+
+
+
+\bibliographystyle{apalike}
+\bibliography{bibliografia}
 \end{document}
