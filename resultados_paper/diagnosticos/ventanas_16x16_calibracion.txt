@@ -1,0 +1,6 @@
+Network ventanas_16x16, trained on 5000 simulations from simulaciones_constante, 1000 epochs, best epoch 979; first window of each of the 200 test simulations
+
+var | casos |     RMSE | err. mediano | desv. media | cobertura 50% | cobertura 90% | |z| > 5
+---------------------------------------------------------------------------------------------
+  a |   200 |  0.06931 |      0.00317 |    0.006088 |         0.450 |         0.805 |       9
+ Dv |   200 |    5.364 |       0.6486 |       1.126 |         0.435 |         0.795 |      11

@@ -1,0 +1,6 @@
+Network completo, trained on 5000 simulations from simulaciones_constante, 1000 epochs, best epoch 946; 200 test simulations
+
+var | casos |     RMSE | err. mediano | desv. media | cobertura 50% | cobertura 90% | |z| > 5
+---------------------------------------------------------------------------------------------
+  a |   200 | 0.003672 |     0.002368 |    0.003124 |         0.445 |         0.840 |       1
+ Dv |   200 |   0.9362 |       0.3493 |      0.6021 |         0.485 |         0.855 |       0

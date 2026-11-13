@@ -1,0 +1,9 @@
+\begin{thebibliography}{}
+
+\bibitem[Kühmichel et~al., 2026]{bayesflow2}
+Kühmichel, L., Huang, J.~M., Pratz, V., Arruda, J., Olischläger, H.,
+  Habermann, D., Kucharsky, S., Elsemüller, L., Mishra, A., Bracher, N.,
+  Jedhoff, S., Schmitt, M., Bürkner, P.-C., and Radev, S.~T. (2026).
+\newblock Bayesflow 2: Multi-backend amortized bayesian inference in python.
+
+\end{thebibliography}
