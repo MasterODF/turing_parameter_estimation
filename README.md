@@ -4,12 +4,13 @@ Code for the paper **"<PAPER TITLE>"** (<AUTHORS>, <JOURNAL / preprint>, <YEAR>)
 
 We simulate a reaction–diffusion model that forms Turing patterns and use amortized Bayesian inference
 ([BayesFlow](https://bayesflow.org), flow matching) to recover its parameters from the final pattern of the
-activator `u`. The paper asks three questions:
+activator `u`. The paper asks four questions:
 
 1. Are homogeneous `a` and `Dv` recovered when the **whole pattern** is observed?
 2. Are homogeneous `a` and `Dv` recovered when only **part of the pattern** (a `w × w` window) is observed?
 3. Are the **partition into boxes** and the homogeneous `a` and `Dv` inside each box recovered from the whole pattern,
    without knowing how many boxes there are?
+4. Can the **condition for a pattern to exist** be learned from simulations?
 
 ## Model
 
@@ -23,7 +24,9 @@ On a periodic `L × L` grid (`L = 128`, `dx = 1`):
 The homogeneous state `u = v = 2` is stable for `a < 1` and becomes Turing-unstable when `Dv > (3 + 2√2) / a`.
 Parameters are drawn as `a ~ U(0.1, 1)` and `Dv ~ U((3 + 2√2)/a, 70)`. For question 3, each 64 × 64 block is split
 recursively into four with probability 0.5, down to 16 × 16 boxes, and every box gets its own `(a, Dv)` from the same
-prior. The equations are integrated with explicit Euler up to `T = 1000` from the homogeneous state plus Gaussian noise
+prior. For question 4, `Dv ~ U(0, 70)` on both sides of the threshold, and what is recorded is the spatial
+standard deviation `σ` of `u`, which decays towards 0 without a pattern and saturates at O(1) with one. The equations
+are integrated with explicit Euler up to `T = 1000` from the homogeneous state plus Gaussian noise
 (standard deviation 0.01), with a time step that keeps the scheme stable for the largest `Dv`.
 
 ## Files
@@ -35,6 +38,8 @@ prior. The equations are integrated with explicit Euler up to `T = 1000` from th
 | `inferir_completo.py` | 1 | Inference from the whole pattern |
 | `inferir_ventanas.py` | 2 | Inference from one window, one network per window size (64, 32, 16, 8, 4, 2) |
 | `inferir_celdas.py` | 3 | Inference of `a` and `Dv` per cell and reconstruction of the partition |
+| `simular_existencia.py` | 4 | BayesFlow simulator on both sides of the Turing threshold; records `σ(t)` instead of the field |
+| `inferir_existencia.py` | 4 | Learns the distribution of `log10 σ(T)` given `(a, Dv)` and uses it to classify 10 000 new `(a, Dv)` pairs |
 
 Every script runs with the settings of the paper by default; `python <script> --help` lists all the options.
 
@@ -53,9 +58,10 @@ Without an NVIDIA GPU, replace `jax[cuda12]` by `jax` in `requirements.txt` (tra
 ## Reproducing the results
 
 ```bash
-# Simulations (5000 training, 200 validation and 200 test simulations of each kind)
+# Simulations (200 validation and 200 test simulations of each kind; 5000 training for questions 1-3, 1000 for question 4)
 python simular_constante.py        # -> simulaciones_constante/
 python simular_celdas.py           # -> simulaciones_celdas/
+python simular_existencia.py       # -> simulaciones_existencia/
 
 # Question 1
 python inferir_completo.py
@@ -65,6 +71,9 @@ python inferir_ventanas.py
 
 # Question 3
 python inferir_celdas.py
+
+# Question 4
+python inferir_existencia.py
 ```
 
 Ablations with 1000 training simulations (the first 1000 of the same training set):
@@ -85,6 +94,13 @@ python inferir_celdas.py --num-entrenar 1000 --nombre celdas_1000
   grid changes every epoch). The saved network is the epoch with the lowest validation loss.
 - **Evaluation.** All diagnostics are computed on the test set. For question 3, the credible level used to
   reconstruct the partition is chosen on the validation set and only then evaluated on the test set.
+- **Question 4.** The network learns the distribution of `log10 σ(T)` given `(a, Dv)` (amortized likelihood
+  estimation; no summary network and no augmentation), trained on 1000 simulations. A pattern is declared when the
+  initial perturbation has grown, `σ(T) > σ(0)`; an absolute threshold such as `σ(T) > 10⁻⁸` misclassifies cases near
+  the boundary, where perturbations decay too slowly to fall below it by `T = 1000`. The trained network is then
+  applied to 10 000 new `(a, Dv)` pairs drawn over the same range: a pair has a pattern when the predicted probability
+  of `σ(T) > σ(0)` is at least 0.5. The pairs are plotted like the simulations, with the theoretical threshold on top,
+  and the constant `c` of the curve `Dv = c / a` that best separates them is compared with `c = 3 + 2√2 ≈ 5.83`.
 
 ### Outputs
 
@@ -97,6 +113,11 @@ python inferir_celdas.py --num-entrenar 1000 --nombre celdas_1000
 | `diagnosticos/<name>_*.png` | Loss, recovery, calibration ECDF, coverage, z-score vs contraction; for question 3 also calibration by box size and example partitions |
 | `diagnosticos/<name>_calibracion.txt` | RMSE, median absolute error, mean posterior SD, coverage of the 50% and 90% central intervals and number of cases with \|z\| > 5 (by box size for question 3) |
 | `diagnosticos/celdas_particiones.txt` | Exact partitions and Rand index for every credible level |
+| `simulaciones_existencia/*.npz` | For question 4: `a`, `Dv`, seed, `σ(T)`, `log10 σ(T)`, the labels `σ(T) > σ(0)` and `σ(T) > 10⁻⁸`, and `σ(t)` every 10 time units |
+| `simulaciones_existencia/patron_*.png` | Every simulation in the `(a, Dv)` plane: green with a pattern, black without |
+| `diagnosticos/existencia_resultados.txt` | Classification of the test set and of the 10 000 pairs, fitted constant `c` |
+| `diagnosticos/existencia_patron.png` | The 10 000 pairs classified by the network (green / black) with the theoretical threshold |
+| `diagnosticos/existencia_pares.npz` | The pairs, their probability of a pattern and the median predicted `log10 σ(T)` |
 
 If `redes/<name>.keras` already exists, the inference scripts load it instead of retraining; delete it (or use another
 `--nombre`) to retrain. If a training run is interrupted, the checkpoint of the unfinished network stays in `redes/`
