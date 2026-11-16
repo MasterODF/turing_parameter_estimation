@@ -1,0 +1,228 @@
+\documentclass[12pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[a4paper, margin=2cm]{geometry}
+\usepackage{hyperref}
+\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+
+\title{Amortized Simulation-Based Inference of Turing Pattern Parameters from the Final State}
+\author{Óscar Delgado Fort\\ Javier Buceta Fernández}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+    We propose a workflow to estimate the parameters of reaction-diffusion models from the
+    Turing patterns they produce, using amortized simulation-based inference. Building on the BayesFlow~2
+    package\cite{bayesflow2}, we jointly train a summary network and an inference network on
+    simulated patterns, so that the posterior distribution of the parameters given a pattern can
+    be obtained for any new observation without retraining. We apply the workflow to a two-morphogen
+    model, considering both spatially homogeneous and inhomogeneous parameters.
+    The networks return accurate and mostly well-calibrated posteriors, and also learn the condition
+    for a pattern to exist. The main limitations are inherent to pattern formation: parameters close to
+    the Turing threshold, where the pattern has not fully formed, observation windows smaller than
+    the pattern wavelength, and profile parameters that leave no trace on the pattern.
+\end{abstract}
+
+\section{Introduction}
+Introduce the topic, explain its significance, and state the research question.
+
+\section{Methodology}
+Describe the methods, materials, and procedures used in the study.
+
+\section{Results}
+Here we present the findings of the study.
+
+    \subsection{Homogeneous parameter estimation}
+        The first case of interest consists of considering the same values of $a$ and $D_v$ at every point of the grid.
+
+        We study the cases where we have access to the full pattern (full window, $128 \times 128 \text{ px}^2$) and where our information
+        of the final state is limited to square windows of smaller sizes ($64 \times 64, 32 \times 32, \ldots, 2 \times 2$). Due to the
+        periodic nature of patterns with a well-defined wavelength, we expect parameters to be obtainable
+        only if said wavelength fits inside the observation window.
+
+        \subsubsection{Full window}
+
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.45\textwidth]{Images/full_window/completo_calibration_ecdf.png}
+                \includegraphics[width=0.45\textwidth]{Images/full_window/completo_recovery.png}
+                \caption{Full window. \textbf{Left:} Fractional rank statistics for each parameter. For each
+                simulated test dataset, the network draws a set of posterior samples and
+                calculates the proportion of those samples that fall below the known
+                ground-truth parameter value. This produces a rank value normalized between
+                0 and 1, which is represented in the X axis. If the
+                posterior approximation is perfectly calibrated, the fractional ranks across
+                many simulations follow a uniform distribution. BayesFlow~2 plots
+                the difference between the observed empirical cumulative distribution function and the
+                expected uniform cumulative distribution; the grey band is the 95\% confidence region
+                of that difference under perfect calibration, so a curve that stays inside the band is
+                compatible with a well-calibrated posterior. \textbf{Right:} Recoverability
+                of the parameters. Knowing the ground truth (X axis), we can plot the recovered
+                value (Y axis). The closer to a diagonal line, the better.}\label{fig:diag_full_window}
+            \end{figure}
+
+            As we can readily see from Figure~\ref{fig:diag_full_window}, the network accurately learns
+            the relation between the stationary state and the parameters of the model. On the 200 test
+            simulations, the root-mean-square error of the posterior median is $0.0035$ for $a$ and $0.95$
+            for $D_v$, with median absolute errors of $0.0021$ and $0.33$. The posteriors are slightly
+            overconfident: the 90\% central credible intervals contain the true value in 85\% ($a$) and 86\%
+            ($D_v$) of the test cases, but no estimate lies more than five posterior standard deviations from the truth.
+
+        \subsubsection{Partial window}
+            This time, we explore the same patterns as before, but the network only sees part of the pattern:
+            a square window of fixed size, with one network trained for each size
+            ($64 \times 64, 32 \times 32, 16 \times 16, 8 \times 8, 4 \times 4, 2 \times 2$). Results may be found in
+            Figure~\ref{fig:diag_partial_window}.
+
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.45\textwidth]{Images/partial_window/ventanas_16x16_recovery.png}
+                \includegraphics[width=0.45\textwidth]{Images/partial_window/ventanas_8x8_recovery.png}
+                \caption{Recoverability of the parameters from a $16 \times 16$ window (\textbf{left}) and an
+                $8 \times 8$ window (\textbf{right}), on either side of the pattern wavelength.}\label{fig:diag_partial_window}
+            \end{figure}
+
+            The median absolute error of $a$ barely changes down to $16 \times 16$ windows ($0.0019$, $0.0020$ and
+            $0.0023$ for $64 \times 64$, $32 \times 32$ and $16 \times 16$) and then grows quickly: $0.0060$
+            ($8 \times 8$), $0.013$ ($4 \times 4$) and $0.037$ ($2 \times 2$). The same happens for $D_v$, from $0.32$
+            ($64 \times 64$) and $0.41$ ($16 \times 16$) to $1.4$ ($8 \times 8$), $3.4$ ($4 \times 4$) and $10.6$
+            ($2 \times 2$). As anticipated, the transition happens when the window becomes smaller than the pattern
+            wavelength, which ranges from about 10 to 30 pixels. Below it the network does not become confidently
+            wrong: the posteriors widen with the error, and the 90\% credible intervals cover the true value in 83--92\%
+            of the test cases for every window size. A handful of confidently wrong estimates remain (at most two of
+            the 200 test cases per parameter and window size), which explain why the root-mean-square error is larger
+            than the median error for some sizes; they likely correspond to simulations so close to the Turing
+            threshold that the pattern has not fully formed at the final time.
+
+        \subsubsection{Pattern existence}
+            In the previous cases we trained the network on parameter configurations that lead to Turing patterns
+            only. We can go beyond that and learn, from simulations, which parameter configurations yield a pattern.
+            In our system, linear stability analysis of the homogeneous state gives the condition
+            \begin{equation}
+                0 < a < 1, \qquad D_v > \frac{3+2\sqrt{2}}{a}.
+                \label{eq:turing_condition}
+            \end{equation}
+            We simulated 1000 training patterns with $a \sim \mathcal U(0.1, 1)$ and $D_v \sim \mathcal U(0, 70)$, on
+            both sides of the threshold, and recorded the spatial standard deviation $\sigma$ of $u$. A pattern is
+            declared when the initial perturbation has grown, $\sigma(T) > \sigma(0)$. A separate network learns the
+            distribution of $\log_{10}\sigma(T)$ given $(a, D_v)$, and a new pair $(a, D_v)$ is classified as
+            producing a pattern when the predicted probability of $\sigma(T) > \sigma(0)$ is at least $0.5$.
+
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.45\textwidth]{Images/existence/patron_entrenar.png}
+                \includegraphics[width=0.45\textwidth]{Images/existence/existencia_patron.png}
+                \caption{Pattern existence in the $(a, D_v)$ plane, green with a pattern and black without.
+                \textbf{Left:} the 1000 training simulations. \textbf{Right:} classification by the network of
+                10\,000 new $(a, D_v)$ pairs, with the theoretical threshold of Eq.~\eqref{eq:turing_condition} in red.}\label{fig:existence}
+            \end{figure}
+
+            The network reproduces the simulated label of all 200 test simulations, and its classification of
+            10\,000 new pairs agrees with Eq.~\eqref{eq:turing_condition} in 99.4\% of them (Figure~\ref{fig:existence}).
+            The curve $D_v = c/a$ that best separates the predicted labels has $c = 6.01$, against the theoretical
+            $c = 3 + 2\sqrt2 \approx 5.83$. The shift is already present in the simulations, whose labels are best
+            separated by $c = 5.91$: just above the threshold the instability grows too slowly to amplify the initial
+            perturbation before the final time, so the boundary learned at finite time lies slightly above the
+            linear-stability one. The remaining difference between $5.91$ and $6.01$ is compatible with the number of
+            training simulations close to the threshold.
+
+    \subsection{Inhomogeneous parameter estimation}
+        The second case of interest consists of $a$ and $D_v$ given by scalar fields $a(\vec r)$, $D_v(\vec r)$ on the
+        simulation grid, $\vec r = (x, y)$, with the diffusion term written as $\nabla\cdot(D_v\nabla v)$. We considered
+        three spatial distributions:
+        \begin{itemize}
+            \item Gaussian: each field $f \in \{a, D_v\}$ is an isotropic Gaussian bump (or dip) on a constant background,
+            \begin{equation*}
+                f(\vec r) = f_b + (f_p - f_b)\exp\left\{-\frac{d{(\vec r, \vec r_f)}^2}{2 w_f^2}\right\},
+            \end{equation*}
+            where $d$ is the distance on the periodic grid, $f_b$ and $f_p$ are the background and peak values, $\vec r_f$
+            is the centre and $w_f$ the width. The two fields have independent parameters.
+            \item Periodic: each field varies sinusoidally along $x$,
+            \begin{equation*}
+                f(\vec r) = f_0 + \varepsilon_f \sin(k x + \varphi_f), \qquad k = 2\pi/L,
+            \end{equation*}
+            with independent mean $f_0$, amplitude $\varepsilon_f$ and phase $\varphi_f$ for $a$ and $D_v$.
+            \item Cell division: the simulation space is randomly split into boxes of variable size, and each box is
+            assigned its own values of $a$ and $D_v$ (Section~\ref{sec:boxes}).
+        \end{itemize}
+        For the smooth fields, all values lie in the same ranges as before, $a \in [0.1, 1]$ and $D_v \in [0, 70]$:
+        $f_b, f_p \sim \mathcal U(f_{\min}, f_{\max})$, the extremes $f_0 \pm \varepsilon_f$ are two independent draws
+        from $\mathcal U(f_{\min}, f_{\max})$ and $\varphi_f \sim \mathcal U(0, 2\pi)$. The centres are drawn uniformly
+        in the central half of the grid, $\vec r_f \in {[L/4, 3L/4]}^2$, and the widths as $w_f \sim \mathcal U(8, 24)$
+        pixels. The Turing condition is not imposed, so the pattern only develops where
+        $D_v(\vec r) > (3 + 2\sqrt 2)/a(\vec r)$ and may cover only part of the domain.
+
+        \subsubsection{Smooth field hyperparameter recovery}
+        The network infers the profile parameters from the final pattern of $u$: $(f_b, f_p, \vec r_f, w_f)$ for each
+        field in the Gaussian case (10 parameters) and $(f_0, \varepsilon_f\sin\varphi_f, \varepsilon_f\cos\varphi_f)$
+        in the periodic case (6 parameters). The phase is parametrized through its sine and cosine, and the centres are
+        restricted to the central half of the grid, so that no inferred quantity is circular. Unlike the homogeneous
+        case, the summary network keeps the spatial layout of its features instead of averaging over the grid, since
+        the centres and phases depend on position. Training is augmented with the grid symmetries that leave the prior
+        unchanged, transforming the parameters accordingly. Besides the calibration of the parameters, each posterior
+        sample is mapped back to $a(\vec r)$ and $D_v(\vec r)$, and the pointwise posterior is compared with the true
+        fields.
+
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.8\textwidth]{Images/smooth/gaussiana_mapas.png}
+                \includegraphics[width=0.8\textwidth]{Images/smooth/sinusoide_mapas.png}
+                \caption{Test simulations with Gaussian (\textbf{top}) and periodic (\textbf{bottom}) fields. From
+                left to right: final pattern of $u$, with the Turing boundary $D_v(\vec r) = (3+2\sqrt2)/a(\vec r)$ in
+                white; true $a(\vec r)$; pointwise posterior median of $a(\vec r)$; true $D_v(\vec r)$; pointwise
+                posterior median of $D_v(\vec r)$.}\label{fig:smooth}
+            \end{figure}
+
+        The fields themselves are recovered accurately (Figure~\ref{fig:smooth}). Averaged over the 200 test
+        simulations, the root-mean-square error over the grid of the pointwise posterior median is $0.026$ for
+        $a(\vec r)$ and $1.8$ for $D_v(\vec r)$ in the Gaussian case, and $0.013$ and $0.78$ in the periodic case,
+        against $0.21$ and $17$ for a constant map at the prior mean. The pointwise 90\% credible intervals contain
+        the true field in 86--91\% of the pixels.
+
+        The individual profile parameters are harder. In the periodic case, the median absolute errors are small
+        ($0.002$ for the three parameters of $a$, $0.24$--$0.35$ for those of $D_v$), with a few confidently wrong
+        estimates of $a$ (at most three of the 200 test cases per parameter). In the Gaussian case, the median error
+        of the centres is about 2 pixels for $a$ and 3 pixels for $D_v$, but the root-mean-square errors are several
+        times larger and the 90\% coverage is 78--92\%, so the posteriors are somewhat overconfident. Part of the
+        difficulty is intrinsic: when the peak and background values are similar, the centre and width of the
+        Gaussian barely affect the pattern, and they are also invisible where the field lies below the Turing
+        threshold. These parameters matter little for the field itself, which explains why the maps are recovered
+        much better than the parameters. The Gaussian network also reached its lowest validation loss early (epoch
+        366 of 1000), which suggests that more training simulations would improve it.
+
+        \subsubsection{Box reconstruction}\label{sec:boxes}
+        Lastly, we studied the case where each pattern comes from a different division of the space into boxes of
+        varying sizes, from $64 \times 64$ down to $16 \times 16$ pixels. The network infers $a$ and $D_v$ on every
+        $16 \times 16$ cell, and the partition is reconstructed by merging neighbouring blocks whose posteriors are
+        compatible, with the credible level chosen on the validation set. The partition of the simulation grid is
+        recovered exactly in 95.0\% of the test simulations (mean Rand index $0.993$), and the values of the parameters
+        in each box are recovered accurately (see Figure~\ref{fig:boxes}): the root-mean-square error is $0.0063$ for
+        $a$ and $0.58$ for $D_v$ in $64 \times 64$ boxes, and $0.010$ and $1.30$ in $16 \times 16$ boxes. The posterior
+        width varies less with the box size than the actual error, so the posteriors of $D_v$ in the smallest boxes are
+        overconfident (90\% coverage of $0.76$), while those of the largest boxes are slightly underconfident ($0.96$).
+        Note also that
+        with this prior neighbouring boxes almost always have very different parameters, which makes the partition
+        easier to recover than it would be for boxes with similar parameters.
+
+            \begin{figure}[htp]
+                \centering
+                \includegraphics[width=0.9\textwidth]{Images/boxes/celdas_particiones_test.png}
+                \caption{True and reconstructed partitions of test simulations, with the inferred $a$ and $D_v$ in each
+                box.}\label{fig:boxes}
+            \end{figure}
+
+
+\section{Conclusion}
+Summarize the main findings and their implications.
+
+
+
+
+\bibliographystyle{apalike}
+\bibliography{bibliografia}
+\end{document}
