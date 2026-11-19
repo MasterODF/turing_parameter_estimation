@@ -221,21 +221,32 @@ Here we present the findings of the study.
         $16 \times 16$ cell, and the partition is reconstructed by merging neighbouring blocks whose posteriors are
         compatible, with the credible level chosen on the validation set. The partition of the simulation grid is
         recovered exactly in 95.0\% of the test simulations (mean Rand index $0.993$), and the values of the parameters
-        in each box are recovered accurately (see Figure~\ref{fig:boxes}): the root-mean-square error is $0.0063$ for
+        in each box are recovered accurately (see Figure~\ref{fig:boxes_recov}): the root-mean-square error is $0.0063$ for
         $a$ and $0.58$ for $D_v$ in $64 \times 64$ boxes, and $0.010$ and $1.30$ in $16 \times 16$ boxes. The posterior
         width varies less with the box size than the actual error, so the posteriors of $D_v$ in the smallest boxes are
         overconfident (90\% coverage of $0.76$), while those of the largest boxes are slightly underconfident ($0.96$).
-        Note also that
-        with this prior neighbouring boxes almost always have very different parameters, which makes the partition
+        Note also that with this prior neighbouring boxes almost always have very different parameters, which makes the partition
         easier to recover than it would be for boxes with similar parameters.
 
             \begin{figure}[htp]
                 \centering
                 \includegraphics[width=0.9\textwidth]{Images/boxes/celdas_particiones_test.png}
                 \caption{True and reconstructed partitions of test simulations, with the inferred $a$ and $D_v$ in each
-                box.}\label{fig:boxes}
+                box.}\label{fig:boxes_partit}
             \end{figure}
 
+
+            \begin{figure}
+                \includegraphics[width=0.5\textwidth]{Images/boxes/celdas_calibration_ecdf_boxes_64.png}
+                \includegraphics[width=0.5\textwidth]{Images/boxes/celdas_calibration_ecdf_boxes_16.png}
+                \caption{Algo}\label{fig:boxes_calib}
+            \end{figure}
+
+            \begin{figure}
+                \centering
+                \includegraphics[width=0.99\textwidth]{Images/boxes/celdas_recovery.png}
+                \caption{Algo}\label{fig:boxes_recov}
+            \end{figure}
 
 \section{Conclusion}
 Summarize the main findings and their implications.
