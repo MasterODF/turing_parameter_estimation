@@ -1,21 +1,5 @@
 """
-Question 2 of the paper: are homogeneous a and Dv recovered when only part of the pattern is observed?
-
-Amortized Bayesian inference (BayesFlow, flow matching) of (a, Dv) from a single w x w window of the final u of the
-simulations written by simular_constante.py, with one network per window size. In every batch the full fields are
-shifted (periodically, by any number of pixels), rotated by 90 degrees and reflected before being cut into
-non-overlapping windows, so the cutting grid changes every epoch; the epoch with the lowest validation loss is kept.
-
-Writes, for every window size w:
-    <redes>/<nombre>_<w>x<w>.keras                   trained network (loaded instead of retrained if it exists)
-    <diagnosticos>/<nombre>_<w>x<w>_*.png            loss, recovery, calibration ECDF, coverage, z-score vs contraction
-    <diagnosticos>/<nombre>_<w>x<w>_calibracion.txt  RMSE, median absolute error, posterior SD, coverage
-Diagnostics use the first window of each test simulation, so there are as many test cases as test simulations.
-
-The defaults are the settings used in the paper (all window sizes, one after another):
-    python inferir_ventanas.py
-One window size per job:
-    python inferir_ventanas.py --ventanas 16
+Are homogeneous a and Dv recovered when only part of the pattern is observed?
 """
 
 import os
