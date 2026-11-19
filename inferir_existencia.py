@@ -1,29 +1,5 @@
 """
-Question 4 of the paper: can the condition for the existence of a Turing pattern be learned from simulations?
-
-A BayesFlow network (flow matching) learns the distribution of log10 sigma(T) given (a, Dv), where sigma(T) is the
-final spatial standard deviation of u in the simulations written by simular_existencia.py (amortized likelihood
-estimation: (a, Dv) are the conditions and log10 sigma the variable whose distribution is learned). The epoch with the
-lowest validation loss is kept.
-
-After the usual diagnostics on the test set, the network is evaluated on PARES new (a, Dv) pairs drawn uniformly over
-the simulated range: for each pair, the probability of a pattern is the fraction of sampled log10 sigma(T) above
-log10 sigma(0) (the initial perturbation has grown), and the pair is labelled as having a pattern when that probability
-is at least 0.5. The labelled pairs are drawn like the simulations (green with a pattern, black without) together with
-the theoretical Turing threshold Dv = (3 + 2 sqrt(2)) / a. The boundary is also summarised by the constant c of the
-curve Dv = c / a that best separates the predicted labels, to compare with the theoretical c = 3 + 2 sqrt(2) = 5.83.
-
-Writes:
-    <redes>/<nombre>.keras                       trained network (loaded instead of retrained if it exists)
-    <diagnosticos>/<nombre>_losses.png           training and validation loss
-    <diagnosticos>/<nombre>_recovery.png         predicted vs simulated log10 sigma(T) on the test set
-    <diagnosticos>/<nombre>_calibration_ecdf.png calibration of the predicted distribution on the test set
-    <diagnosticos>/<nombre>_patron.png           the PARES pairs, green with a pattern and black without, with the theory
-    <diagnosticos>/<nombre>_resultados.txt       classification of the test set and of the pairs, fitted constant c
-    <diagnosticos>/<nombre>_pares.npz            the pairs, their probability of a pattern and median log10 sigma(T)
-
-The defaults are the settings used in the paper:
-    python inferir_existencia.py
+Can the condition for the existence of a Turing pattern be learned from simulations?
 """
 
 import os
