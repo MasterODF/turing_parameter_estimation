@@ -1,35 +1,5 @@
 """
-Simulations for question 4 of the paper: for which (a, Dv) does a Turing pattern form?
-
-The data are generated with a BayesFlow simulator made of two parts:
-    prior    a ~ U(A_MIN, A_MAX), Dv ~ U(0, DV_MAX), and a seed for the initial noise
-    modelo   the reaction-diffusion model of simular_constante.py, on a periodic L x L grid (dx = 1), integrated with
-             explicit Euler from u = v = 2 plus Gaussian noise:
-                 du/dt = a (u + v - 4) - (u - 2)^3 / 2 + lap(u)
-                 dv/dt = 6 - 2u - v + Dv lap(v)
-             it returns the spatial standard deviation sigma of u, which decays towards 0 when the homogeneous state
-             is stable and saturates at O(1) when a pattern forms
-Dv is drawn on both sides of the Turing threshold Dv_min(a) = (3 + 2 sqrt(2)) / a. The model is the expensive part,
-so it is batched: BayesFlow hands it all the (a, Dv) of a set at once and it runs them in parallel processes.
-
-Outputs of the simulator, stored per set:
-    a, Dv, semilla       parameters and seed of the initial noise
-    sigma                standard deviation of u at the final time (exactly 0 if u is uniform to machine precision)
-    log_sigma            log10(max(sigma, SIGMA_MINIMO)), the quantity learned by inferir_existencia.py
-    patron               sigma > UMBRAL (absolute threshold)
-    crece                sigma > sigma(0) (the initial perturbation has grown)
-    sigma_t              sigma every INTERVALO time units, to revisit the criterion without simulating again
-Close to the threshold (and close to a = 1, where the homogeneous state approaches a Hopf bifurcation) perturbations
-decay or grow very slowly, so an absolute threshold on sigma(T) can misclassify them; `crece` is more robust.
-
-Writes to the output folder:
-    entrenar.npz, validar.npz, test.npz   the outputs above, with shape (N, 1) except sigma_t (N, M), and tiempos (M,)
-    parametros.json                       every setting, so the batch can be reproduced
-    patron_<set>.png                      every simulation in the (a, Dv) plane: green with a pattern
-                                          (sigma(T) > sigma(0)), black without
-
-The defaults are the settings used in the paper:
-    python simular_existencia.py
+Simulations for question 4: for which (a, Dv) does a Turing pattern form?
 """
 
 import os
