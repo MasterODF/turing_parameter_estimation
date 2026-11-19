@@ -81,10 +81,10 @@ Here we present the findings of the study.
 
             \begin{figure}[htp]
                 \centering
-                \includegraphics[width=0.45\textwidth]{Images/partial_window/ventanas_16x16_recovery.png}
-                \includegraphics[width=0.45\textwidth]{Images/partial_window/ventanas_8x8_recovery.png}
-                \caption{Recoverability of the parameters from a $16 \times 16$ window (\textbf{left}) and an
-                $8 \times 8$ window (\textbf{right}), on either side of the pattern wavelength.}\label{fig:diag_partial_window}
+                \includegraphics[width=0.45\textwidth]{Images/partial_window/ventanas_64x64_recovery.png}
+                \includegraphics[width=0.45\textwidth]{Images/partial_window/ventanas_4x4_recovery.png}
+                \caption{Recoverability of the parameters from a $64\times64$ window (\textbf{left}) and an
+                $4\times4$ window (\textbf{right}), on either side of the pattern wavelength.}\label{fig:diag_partial_window}
             \end{figure}
 
             The median absolute error of $a$ barely changes down to $16 \times 16$ windows ($0.0019$, $0.0020$ and
@@ -194,6 +194,26 @@ Here we present the findings of the study.
         threshold. These parameters matter little for the field itself, which explains why the maps are recovered
         much better than the parameters. The Gaussian network also reached its lowest validation loss early (epoch
         366 of 1000), which suggests that more training simulations would improve it.
+
+
+        \begin{figure}[htp]
+            \centering
+            \includegraphics[width=0.9\textwidth]{Images/smooth/gaussiana_recovery.png}
+            \caption{Recovery distributions for gaussian smooth field parameters. The background and peak values for $a, D_v$ may be
+            recovered with ease, whereas the center and width are notably noisier. Eventhough more training simulation
+            may improve this, we believe privileged positions may not be properly recovered due to periodic boundary conditions. }\label{fig:recovery_gauss}
+        \end{figure}
+
+
+        \begin{figure}[htp]
+            \centering
+            \includegraphics[width=0.99\textwidth]{Images/smooth/sinusoide_recovery.png}
+            \caption{Recovery distributions for sinusoidal smooth field parameters.}\label{fig:recovery_sinus}
+        \end{figure}
+
+
+
+
 
         \subsubsection{Box reconstruction}\label{sec:boxes}
         Lastly, we studied the case where each pattern comes from a different division of the space into boxes of
